@@ -161,7 +161,7 @@ for i in sorted(list(incomplete_sample.values()), reverse=True):
 end_time = default_timer()
 print(len(x_train), 'Samples Generated in', timedelta(seconds=end_time - start_time))
 
-add_info = NUM_PLAYERS + 'P_AVG'
+add_info = str(NUM_PLAYERS) + 'P_AVG'
 add_info += '_' if add_info else ''
 time_lbl = datetime.now().strftime('%m-%d-%H%M%S')
 
