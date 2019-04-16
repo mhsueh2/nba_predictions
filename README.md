@@ -13,5 +13,5 @@
 
 ## To be finished
 - Feature selection adjustment
-- Model adjustments
+- Model tuning
 - Add NN 
