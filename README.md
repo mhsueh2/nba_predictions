@@ -14,3 +14,4 @@
 ## To be finished
 - Feature selection adjustment
 - Model adjustments
+- Add NN 
