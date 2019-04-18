@@ -77,7 +77,7 @@ AWAY = 'A'
 """
 SETTINGS 
 """
-NUM_PLAYERS = 7  # Number of players used to generate features
+NUM_PLAYERS = 10  # Number of players used to generate features
 REQ_PLAYER_STATS = [
     "PLAYER_ID",
     "PLAYER_NAME",
@@ -161,7 +161,7 @@ for i in sorted(list(incomplete_sample.values()), reverse=True):
 end_time = default_timer()
 print(len(x_train), 'Samples Generated in', timedelta(seconds=end_time - start_time))
 
-add_info = str(NUM_PLAYERS) + 'P_AVG'
+add_info = str(NUM_PLAYERS) + 'P'
 add_info += '_' if add_info else ''
 time_lbl = datetime.now().strftime('%m-%d-%H%M%S')
 
