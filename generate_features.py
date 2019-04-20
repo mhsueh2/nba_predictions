@@ -93,22 +93,23 @@ REQ_PLAYER_STATS = [
 """
 SCRIPT
 """
-abs_path = os.getcwd()
-df_team_bx = read_csv(abs_path + '/data/team_boxscore_stats_1997-19.csv')
-df_player_bx = read_csv(abs_path + '/data/player_boxscore_stats_1997-19_adv.csv')
+root_path = os.getcwd()
+df_team_bx = read_csv(root_path + '/data/team_boxscore_stats_1997-19.csv')
+df_player_bx = read_csv(root_path + '/data/player_boxscore_stats_1997-19_adv.csv')
 
 
 start_time = default_timer()
 x_train = list()
 y_train = list()
-season_id = None
+season_lbl = list()
+prev_season = None
 incomplete_sample = dict()  # {'%ID": %i}
 
 for i, game_inf in df_team_bx.iterrows():
 
     # Fetch last seasons player stats
-    if season_id != game_inf['SEASON_ID']:  #TODO: Season 1999 splits regular/playoff
-        season_id = game_inf['SEASON_ID']
+    if prev_season != game_inf['SEASON_ID']:  #TODO: Season 1999 splits regular/playoff
+        prev_season = game_inf['SEASON_ID']
         teams_meta = dict()
         yr = game_inf['GAME_DATE'][:4]
         file_path ='data/player_yearly_stats/player_stats_' + str(int(yr) - 1)[-2:] + '-' + yr[-2:] + '.csv'
@@ -135,6 +136,7 @@ for i, game_inf in df_team_bx.iterrows():
         sample = features()
         x_train.append(sample)
         y_train.append(check_winner(game_inf))
+        season_lbl.append(game_inf['SEASON_ID'])
         incomplete_sample[game_id] = len(x_train) - 1
 
     starters = guess_starters(df_player_bx, game_inf)
@@ -157,18 +159,23 @@ print('Cleaning incomplete samples...')
 for i in sorted(list(incomplete_sample.values()), reverse=True):
     x_train.pop(i)
     y_train.pop(i)
+    season_lbl.pop(i)
 
 end_time = default_timer()
 print(len(x_train), 'Samples Generated in', timedelta(seconds=end_time - start_time))
 
-add_info = str(NUM_PLAYERS) + 'P'
-add_info += '_' if add_info else ''
 time_lbl = datetime.now().strftime('%m-%d-%H%M%S')
+sub_folder = str(NUM_PLAYERS) + 'P' # Optional: Specify Folder Name
+sub_folder += f'_{time_lbl}' if sub_folder else time_lbl
+path = os.path.join(root_path, 'feature_data', sub_folder)
+os.mkdir(path)
 
-feat_file = abs_path + '/feature_data/x_train_' + add_info + time_lbl
-lbl_file = abs_path + '/feature_data/y_train_' + add_info + time_lbl
+feat_file = os.path.join(path, 'x_train')
+lbl_file = os.path.join(path, 'y_train')
+season_lbl_file = os.path.join(path, 'season_lbl')
 
 np.save(feat_file, pd.DataFrame(x_train).values)
 np.save(lbl_file, y_train)
+np.save(season_lbl_file, season_lbl)
 
 print('Training data generated in feature_data folder')

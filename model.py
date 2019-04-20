@@ -50,43 +50,53 @@ def train_predict(clf, x_train, y_train, x_test, y_test):
     print(f"F1 score and accuracy score for test set: {f1} , {np.mean(acc)}.")
 
 
-LATEST_DATA = False
-source_file = ''
+SEASON_TO_TEST = 22018  # SEASON_ID for specified test data
+LATEST_DATA = True  # FOLDER for specified feature data
 
-data_folder = '/feature_data/'
-folder_path = os.getcwd() + data_folder
-if not LATEST_DATA:
-    feature_file = max(glob.iglob(folder_path + '*x_train*'), key=os.path.getctime)
-    lbl_file = max(glob.iglob(folder_path + '*y_train*'), key=os.path.getctime)
-elif not source_file:
-    raise Exception("Source file name must be specified, assign to 'source_file' var")
+root = os.path.join(os.getcwd(), 'feature_data')
+if LATEST_DATA:
+    sub_folder = max(glob.iglob(os.path.join(root, '*/')), key=os.path.getmtime)
+else:
+    folder_ = ''
+    if not folder_:
+        raise Exception("Source file name must be specified, assign to 'source_file' var")
+    sub_folder = os.path.join(root, folder_)
 
-features = np.load(feature_file)
-labels = np.load(lbl_file)
+features = np.load(os.path.join(sub_folder, 'x_train.npy'))
+labels = np.load(os.path.join(sub_folder, 'y_train.npy'))
+season_lbl = np.load(os.path.join(sub_folder, 'season_lbl.npy'))
 
-x_train, x_test, y_train, y_test = \
-    train_test_split(features,
-                     labels,
-                     test_size=0.2,
-                     random_state=2,
-                     stratify=labels)
+for SEASON_TO_TEST in set(season_lbl):
+    if SEASON_TO_TEST:
+        train_indices = [i for i, v in enumerate(season_lbl) if int(v) != SEASON_TO_TEST]
+        test_indices = [i for i, v in enumerate(season_lbl) if int(v) == SEASON_TO_TEST]
 
-clf_A = LogisticRegression(random_state=42, solver='saga', max_iter=999999)
-train_predict(clf_A, x_train, y_train, x_test, y_test)
-print('')
+        x_train, y_train = features[train_indices], labels[train_indices]
+        x_test, y_test = features[test_indices], labels[test_indices]
+    else:
+        x_train, x_test, y_train, y_test = \
+            train_test_split(features,
+                             labels,
+                             test_size=0.2,
+                             random_state=2,
+                             stratify=labels)
 
-clf_B = SVC(random_state=912, kernel='rbf', gamma='auto')
-train_predict(clf_B, x_train, y_train, x_test, y_test)
-print('')
+    clf_A = LogisticRegression(random_state=42, solver='saga', max_iter=999999)
+    train_predict(clf_A, x_train, y_train, x_test, y_test)
+    print('')
 
-clf_C = KNeighborsClassifier(n_neighbors=8)
-train_predict(clf_C, x_train, y_train, x_test, y_test)
-print('')
-
-clf_D = LinearDiscriminantAnalysis()
-train_predict(clf_D, x_train, y_train, x_test, y_test)
-print('')
-
-clf_E = RandomForestClassifier(n_estimators=100, max_depth=2, random_state=0)
-train_predict(clf_E, x_train, y_train, x_test, y_test)
-print('')
+# clf_B = SVC(random_state=912, kernel='rbf', gamma='auto')
+# train_predict(clf_B, x_train, y_train, x_test, y_test)
+# print('')
+#
+# clf_C = KNeighborsClassifier(n_neighbors=8)
+# train_predict(clf_C, x_train, y_train, x_test, y_test)
+# print('')
+#
+# clf_D = LinearDiscriminantAnalysis()
+# train_predict(clf_D, x_train, y_train, x_test, y_test)
+# print('')
+#
+# clf_E = RandomForestClassifier(n_estimators=100, max_depth=2, random_state=0)
+# train_predict(clf_E, x_train, y_train, x_test, y_test)
+# print('')
